@@ -122,28 +122,8 @@ function gotStream(stream) {
     meter = createAudioMeter(audioContext);
     mediaStreamSource.connect(meter);
 // console.log(meter;
-    // kick off the visual updating
-    // drawLoop();
+
 }
-
-// function drawLoop( time ) {
-//     // clear the background
-//     canvasContext.clearRect(0,0,WIDTH,HEIGHT);
-//
-//     // check if we're currently clipping
-//     if (meter.checkClipping())
-//         canvasContext.fillStyle = "red";
-//     else
-//         canvasContext.fillStyle = "green";
-//
-//     // draw a bar based on the current volume
-//     canvasContext.fillRect(0, 0, meter.volume*WIDTH*1.4, HEIGHT);
-//
-//     // set up the next visual callback
-//     rafID = window.requestAnimationFrame( drawLoop );
-// }
-
-
 
 
 /////////////////-------------------
@@ -153,6 +133,12 @@ function gotStream(stream) {
 // var a = 0.01;
 var brazo_i  = null;
 var brazo_d = null;
+var head = null;
+//CAMERA CONTROL
+var constant = 0;
+var radius = 3000;
+var elapsedTime = 0.02;
+//ARMS CONTROL
 var tiltDirection_i = 1;
 var tiltDirection_d = -1;
 
@@ -296,13 +282,13 @@ function buildShape(){
 	var SPHEREangleLenght = 6.3; //grados que abarca la esfera (360, solo 180...)
 
 	var SPHEREgeometry = new THREE.SphereGeometry( SPHEREradius, SPHEREwidthSegments, SPHEREheigthSegments, SPHEREangleStart, SPHEREangleLenght );
-	var sphere = new THREE.Mesh( SPHEREgeometry, material );
-		sphere.castShadow = true;	//emitir sombras
-		sphere.receiveShadow = true;	//recibir sombras
-		sphere.position.set(0,300,0);	//position del objeto(x,y,z)
-		sphere.rotation.set(0,-1.5707963268,0);	//rotacion del objeto(x,y,z)
-		sphere.scale.set(1,1,1);	//escala del objeto(x,y,z)
-	scene.add( sphere );
+	head = new THREE.Mesh( SPHEREgeometry, material );
+		head.castShadow = true;	//emitir sombras
+		head.receiveShadow = true;	//recibir sombras
+		head.position.set(0,300,0);	//position del objeto(x,y,z)
+		head.rotation.set(0,-1.5707963268,0);	//rotacion del objeto(x,y,z)
+		head.scale.set(1,1,1);	//escala del objeto(x,y,z)
+	scene.add( head );
 
 	//CABEZA 2
 	var SPHEREmaterial = new THREE.MeshPhongMaterial( {color: 0x31b5ff, emissive: 0x000033, specular: 0x111111, shininess: 0, metal: true, side: THREE.DoubleSide} );
@@ -417,41 +403,22 @@ function animate() {
 		requestAnimationFrame( animate );
 	}, 1000/30 );
 
-
-
-		// brazo_i.rotation.y += tiltDirection_i * 0.5 * Math.PI/180;
-		// if ( brazo_i.rotation.y > 30 * Math.PI/180 ) {
-		// 	tiltDirection_i = -1;
-		// 	brazo_i.rotation.y = 2*(30 * Math.PI/180) - brazo_i.rotation.y;
-		// } else if ( brazo_i.rotation.y < -22 * Math.PI/180 ) {
-		// 	tiltDirection_i = 1;
-		// 	brazo_i.rotation.y = 2*(-22 * Math.PI/180) - brazo_i.rotation.y;
-		// }
-		//
-		//
-		// brazo_d.rotation.y += tiltDirection_d * 0.5 * Math.PI/180;
-		// if ( brazo_d.rotation.y > 30 * Math.PI/180 ) {
-		// 	tiltDirection_d = -1;
-		// 	brazo_d.rotation.y = 2*(30 * Math.PI/180) - brazo_d.rotation.y;
-		// } else if ( brazo_d.rotation.y < -22 * Math.PI/180 ) {
-		// 	tiltDirection_d = 1;
-		// 	brazo_d.rotation.y = 2*(-22 * Math.PI/180) - brazo_d.rotation.y;
-		// }
-
-		// brazo_i.rotate.y = a;
-		// brazo_i.applyMatrix( new THREE.Matrix4().makeTranslation(0, 0, a) );
 		brazo_i.rotation.set(0,0,-1*(5)*meter.volume);	//rotacion del objeto(x,y,z)
 		brazo_d.rotation.set(0,0,1*(5)*meter.volume);	//rotacion del objeto(x,y,z)
 
-		// a+=0.01;
+		constant+=1;
 
     TWEEN.update();
 
 	render();
 
-	//if(controls) controls.update( clock.getDelta() );
 }
 
 function render(){
+
+	camera.position.x = head.position.x + radius * Math.cos( constant * elapsedTime );
+	camera.position.z = head.position.z + radius * Math.sin( constant * elapsedTime );
+	camera.lookAt( head.position);
+
 	renderer.render(scene,camera);
 }
